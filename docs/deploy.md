@@ -16,7 +16,7 @@ commit. CI also runs `gofmt`, `go vet`, the race detector, the cloud-init test
 
 When you push to `main`, [CI](../.github/workflows/ci.yml) runs the tests.
 If the push changes what goes into the image (`go.mod`, `go.sum`, `cmd/`,
-`internal/`, `content/`, `Dockerfile` or `.dockerignore`), it also builds the
+`internal/`, `content/`, `Dockerfile`, `.dockerignore` or the CI workflow), it also builds the
 image, ships it to the Lightsail box over SSH, and smoke-tests the live server
 with `ssh guest@<host> whoami`. Other pushes, such as docs or the license,
 skip the deploy.

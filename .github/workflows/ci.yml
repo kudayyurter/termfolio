@@ -22,9 +22,9 @@ jobs:
       - run: bash deploy/cloud-init_test.sh
       - run: docker build -t termfolio:ci .
 
-  # Decides whether this push changes the image. Docs, the license and the
-  # first-boot scripts are not in it, so pushes touching only those skip the
-  # deploy. Deploys anyway when the previous commit is unknown (force push).
+  # Decides whether this push changes the image or the pipeline that ships it.
+  # Docs, the license and the first-boot scripts are not in it, so pushes
+  # touching only those skip the deploy. Deploys anyway when the previous commit is unknown (force push).
   changes:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -41,7 +41,8 @@ jobs:
           image=true
           if git cat-file -e "${BEFORE}^{commit}" 2>/dev/null &&
             git diff --quiet "$BEFORE" HEAD -- \
-              go.mod go.sum cmd internal content Dockerfile .dockerignore; then
+              go.mod go.sum cmd internal content Dockerfile .dockerignore \
+              .github/workflows/ci.yml; then
             image=false
           fi
           echo "image=$image" | tee -a "$GITHUB_OUTPUT"
@@ -51,14 +52,23 @@ jobs:
     if: needs.changes.outputs.image == 'true'
     runs-on: ubuntu-latest
     concurrency: deploy
+    permissions:
+      contents: read
+      id-token: write # GitHub OIDC token for the Infisical login
     steps:
       - uses: actions/checkout@v5
       - run: docker build -t "termfolio:${GITHUB_SHA}" .
+      # Sets DEPLOY_HOST, DEPLOY_SSH_KEY and DEPLOY_KNOWN_HOSTS for the steps below.
+      # The identity only accepts tokens from this repo's main branch.
+      - name: Fetch deploy secrets from Infisical
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: 3262d441-5ba1-4205-a71b-4e46e6be9948
+          project-slug: termfolio
+          env-slug: prod
+          secret-path: /
       - name: Ship the image to Lightsail
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           install -d -m 700 ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy
@@ -67,8 +77,6 @@ jobs:
           docker save "termfolio:${GITHUB_SHA}" | gzip \
             | ssh -i ~/.ssh/deploy -p 2200 "deploy@${DEPLOY_HOST}" "${GITHUB_SHA}"
       - name: Smoke test
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           sleep 3
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \

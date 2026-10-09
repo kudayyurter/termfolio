@@ -59,6 +59,6 @@ Static IP: $IP
 Next:
   1. Wait ~3 minutes for first-boot setup, then: ssh -p 2200 ubuntu@$IP 'tail -5 /var/log/cloud-init-output.log'
   2. DNS: A record  term.kudayyurter.dev -> $IP
-  3. GitHub secrets: DEPLOY_HOST=$IP, DEPLOY_SSH_KEY=<contents of $DEPLOY_KEY>,
-     DEPLOY_KNOWN_HOSTS=\$(ssh-keyscan -p 2200 $IP)
+  3. Infisical (project termfolio, env prod, path /): DEPLOY_HOST=$IP,
+     DEPLOY_SSH_KEY=<contents of $DEPLOY_KEY>, DEPLOY_KNOWN_HOSTS=\$(ssh-keyscan -p 2200 $IP)
 EOF

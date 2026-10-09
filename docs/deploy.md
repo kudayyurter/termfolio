@@ -16,7 +16,7 @@ commit. CI also runs `gofmt`, `go vet`, the race detector, the cloud-init test
 
 When you push to `main`, [CI](../.github/workflows/ci.yml) runs the tests.
 If the push changes what goes into the image (`go.mod`, `go.sum`, `cmd/`,
-`internal/`, `content/`, `Dockerfile` or `.dockerignore`), it also builds the
+`internal/`, `content/`, `Dockerfile`, `.dockerignore` or the CI workflow), it also builds the
 image, ships it to the Lightsail box over SSH, and smoke-tests the live server
 with `ssh guest@<host> whoami`. Other pushes, such as docs or the license,
 skip the deploy.
@@ -27,9 +27,16 @@ skip the deploy.
 | Visitors | port 22 → container port 2222 |
 | Admin login | `ssh -p 2200 ubuntu@term.kudayyurter.dev` |
 | Logs | `sudo journalctl -u termfolio -f` |
-| Host key | `/var/lib/termfolio/` (back it up; if it's lost, returning visitors get a host key warning) |
+| Host key | `/var/lib/termfolio/` (backup in Infisical `termfolio`, `prod`, `/backup/SSH_HOST_KEY`; if it's lost, returning visitors get a host key warning) |
 | First-time setup | [`deploy/lightsail.sh`](../deploy/lightsail.sh) |
-| CI secrets | `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS` |
+| CI secrets | `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS` in the `termfolio` Infisical project (`prod`, path `/`). CI logs in with GitHub OIDC as machine identity `termfolio-github-ci`, which only accepts `main` |
+
+The private deploy key isn't kept on disk. To restore it before re-running
+`deploy/lightsail.sh` (which otherwise generates a new key), run:
+
+```sh
+mkdir -p deploy/keys && (umask 077; infisical secrets get DEPLOY_SSH_KEY --plain > deploy/keys/deploy_ed25519)
+```
 
 ## Configuration
 

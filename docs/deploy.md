@@ -27,7 +27,7 @@ skip the deploy.
 | Visitors | port 22 → container port 2222 |
 | Admin login | `ssh -p 2200 ubuntu@term.kudayyurter.dev` |
 | Logs | `sudo journalctl -u termfolio -f` |
-| Host key | `/var/lib/termfolio/` (back it up; if it's lost, returning visitors get a host key warning) |
+| Host key | `/var/lib/termfolio/` (backup in Infisical `termfolio`, `prod`, `/backup/SSH_HOST_KEY`; if it's lost, returning visitors get a host key warning) |
 | First-time setup | [`deploy/lightsail.sh`](../deploy/lightsail.sh) |
 | CI secrets | `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS` (GitHub Actions secrets; source copies in the `termfolio` Infisical project, `prod` environment) |
 

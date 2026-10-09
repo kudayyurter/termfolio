@@ -29,7 +29,7 @@ skip the deploy.
 | Logs | `sudo journalctl -u termfolio -f` |
 | Host key | `/var/lib/termfolio/` (backup in Infisical `termfolio`, `prod`, `/backup/SSH_HOST_KEY`; if it's lost, returning visitors get a host key warning) |
 | First-time setup | [`deploy/lightsail.sh`](../deploy/lightsail.sh) |
-| CI secrets | `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS` (GitHub Actions secrets; source copies in the `termfolio` Infisical project, `prod` environment) |
+| CI secrets | `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS` in the `termfolio` Infisical project (`prod`, path `/`). CI logs in with GitHub OIDC as machine identity `termfolio-github-ci`, which only accepts `main` |
 
 The private deploy key isn't kept on disk. To restore it before re-running
 `deploy/lightsail.sh` (which otherwise generates a new key), run:
